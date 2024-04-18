@@ -1,8 +1,8 @@
-using System.ComponentModel.DataAnnotations;
+using listing.core.Domain.Elasticsearch.SeedWork;
 using System.Text.Json.Serialization;
 
 namespace listing.core.Domain.Elasticsearch;
-public class Category
+public class Category :ESEntity
 {
 	public Category(long categoryId, string name, int? parentId, string hierarchyName, string hierarchyId, bool available)
 	{
@@ -13,10 +13,6 @@ public class Category
 		HierarchyId = hierarchyId;
 		Available = available;
 	}
-
-	[Key]
-    [JsonPropertyName("_id")]
-    public string Id { get; set; } = null!;
 
     [JsonPropertyName("categoryId")]
     public long CategoryId { get; set; }

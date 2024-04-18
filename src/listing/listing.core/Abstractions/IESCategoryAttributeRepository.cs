@@ -2,7 +2,7 @@
 
 namespace listing.core.Abstractions;
 
-public interface IESCategoryAttributeRepository
+public interface IESCategoryAttributeRepository : IESGenericRepository<CategoryAttribute>
 {
 	bool Bulk(IEnumerable<CategoryAttribute> categoryAttributes);
 }

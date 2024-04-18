@@ -2,9 +2,9 @@
 
 namespace listing.core.Domain.EFCore;
 
-public class SaleItemAttribute :EFEntity
+public class StockItemAttribute :EFEntity, ITenancy
 {
-    public int SalesItemId { get; set; }
+    public int StockItemId { get; set; }
 
     public int AttributeId { get; set; }
     public int AttributeValueId { get; set; }

@@ -1,7 +1,6 @@
-﻿using listing.core.Extensions;
+﻿using listing.core.Abstractions;
 using listing.core.Domain.Elasticsearch;
-using listing.core.Abstractions;
-using System;
+using listing.core.Extensions;
 
 namespace listing.infrastructure.Clients.Trendyol;
 
@@ -39,7 +38,7 @@ public class CategoryAndAttributeHandler(IESCategoryRepository _eSCategoryReposi
 	{
 		var hieararchyPaths = GenerateHierarchy(productCategory, flatProductCategories);
 		var category = new Category(productCategory.id, productCategory.name, productCategory.parentId, hieararchyPaths.GetValueOrDefault(_hierarchyName, string.Empty), hieararchyPaths.GetValueOrDefault(_hierarchyId, string.Empty), !productCategory.subCategories.Any());
-		_eSCategoryRepository.Save(category);
+		 _eSCategoryRepository.Add(category);
 	}
 
 	private void SaveAttributes(IEnumerable<TrendyolAttribute> attributes)

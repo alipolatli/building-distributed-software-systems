@@ -1,9 +1,9 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using listing.core.Domain.Elasticsearch.SeedWork;
 using System.Text.Json.Serialization;
 
 namespace listing.core.Domain.Elasticsearch;
 
-public class CategoryAttributeValue
+public class CategoryAttributeValue :ESEntity
 {
 	public CategoryAttributeValue(int categoryId, int attributeId, int attributeValueId, string name)
 	{
@@ -12,10 +12,6 @@ public class CategoryAttributeValue
 		AttributeValueId = attributeValueId;
 		Name = name;
 	}
-
-	[Key]
-	[JsonPropertyName("_id")]
-	public string Id { get; set; }  = null!;
 
 	[JsonPropertyName("categoryId")]
 	public int CategoryId { get; set; }

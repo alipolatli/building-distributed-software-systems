@@ -4,11 +4,14 @@ using listing.core.Abstractions;
 using listing.core.Domain.Elasticsearch;
 using Polly;
 
-namespace listing.infrastructure.Data.Elasticsearch;
+namespace listing.infrastructure.Data.Elasticsearch.Repositories;
 
-public class ESCategoryAttributeRepository(ElasticsearchClient _elasticsearchClient) : IESCategoryAttributeRepository
+public class ESCategoryAttributeRepository : ESGenericRepository<CategoryAttribute>, IESCategoryAttributeRepository
 {
-	private const string INDEX_NAME = "category-attributes";
+	public ESCategoryAttributeRepository(ElasticsearchClient elasticsearchClient) : base(elasticsearchClient)
+	{
+
+	}
 
 	public bool Bulk(IEnumerable<CategoryAttribute> categoryAttributes)
 	{
@@ -40,4 +43,6 @@ public class ESCategoryAttributeRepository(ElasticsearchClient _elasticsearchCli
 			throw new Exception($"Retry mechanism still not successful at the end. Exception Message: {ex.Message}", ex);
 		}
 	}
+	
+
 }

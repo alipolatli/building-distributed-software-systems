@@ -2,9 +2,9 @@
 
 namespace listing.core.Domain.EFCore;
 
-public class SaleItemMedia :EFEntity
+public class StockItemMedia :EFEntity, ITenancy
 {
-	public int SalesItemId { get; set; }
+	public int StockItemId { get; set; }
 
 	public string Url { get; set; } = null!;
     public int Type { get; set; }

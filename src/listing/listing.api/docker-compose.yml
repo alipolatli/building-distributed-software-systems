@@ -1,42 +1,6 @@
 version: '3.8'
 
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:latest
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
-      ZOOKEEPER_TICK_TIME: 2000
-    ports:
-      - 52181:2181
-
-  kafka:
-    image: confluentinc/cp-kafka:latest
-    depends_on:
-      - zookeeper
-    ports:
-      - 59092:59092
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:59092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-
-  kafka-ui:
-    image: provectuslabs/kafka-ui
-    container_name: kafka-ui
-    ports:
-      - "9091:8080"
-    restart: always
-    depends_on:
-      - kafka
-      - zookeeper
-    environment:
-      - KAFKA_CLUSTERS_0_NAME=local
-      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
-      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
-
   postgres:
     image: debezium/example-postgres
     restart: always
@@ -52,21 +16,7 @@ services:
       - "wal_level=logical"
     volumes:
       - ./resource/init.sql:/docker-entrypoint-initdb.d/create-db-tables.sql
-
-  debezium:
-    image: debezium/connect
-    depends_on:
-      - postgres
-      - kafka
-      - mongodb
-    ports:
-      - '8083:8083'
-    environment:
-      - BOOTSTRAP_SERVERS=kafka:9092
-      - GROUP_ID=medium_debezium
-      - CONFIG_STORAGE_TOPIC=my_connect_configs
-      - OFFSET_STORAGE_TOPIC=my_connect_offsets
-      - STATUS_STORAGE_TOPIC=my_connect_statuses
+      - postgres-data:/var/lib/postgresql/data
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.7.1
@@ -99,16 +49,6 @@ services:
     volumes:
       - kibana-data:/usr/share/kibana/data
 
-  debezium-ui:
-    image: debezium/debezium-ui
-    container_name: debezium-ui
-    ports:
-      - "8084:8084"
-    environment:
-      - KAFKA_CONNECT_URIS=http://debezium:8083
-    depends_on:
-      - debezium
-
 networks:
   es-net:
     driver: bridge
@@ -116,4 +56,6 @@ volumes:
   elasticsearch-data:
     driver: local
   kibana-data:
+    driver: local
+  postgres-data:
     driver: local
