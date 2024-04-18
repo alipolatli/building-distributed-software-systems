@@ -1,3 +1,6 @@
+using listing.api.Apis.Restful;
+using listing.infrastructure;
+
 namespace listing.api
 {
 	public class Program
@@ -5,6 +8,8 @@ namespace listing.api
 		public static void Main(string[] args)
 		{
 			var builder = WebApplication.CreateBuilder(args);
+
+			builder.Services.AddInfrastructure(builder.Configuration);
 
 			builder.Services.AddAuthorization();
 
@@ -20,6 +25,10 @@ namespace listing.api
 			}
 
 			app.UseAuthorization();
+
+			app.MapGroup("/api/v1/listing")
+		   .WithTags("Listing API")
+		   .MapListingApi();
 
 			app.Run();
 		}

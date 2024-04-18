@@ -4,5 +4,5 @@ namespace listing.core.Abstractions;
 
 public interface IESCategoryAttributeValueRepository
 {
-	void Bulk(IEnumerable<CategoryAttributeValue> categoryAttribute);
+	bool Bulk(IEnumerable<CategoryAttributeValue> categoryAttributeValues);
 }

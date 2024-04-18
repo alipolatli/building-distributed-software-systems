@@ -1,6 +1,11 @@
-﻿using listing.infrastructure.Clients.Trendyol;
+﻿using Elastic.Clients.Elasticsearch;
+using listing.core.Abstractions;
+using listing.infrastructure.Clients.Trendyol;
+using listing.infrastructure.Data.EFCore;
+using listing.infrastructure.Data.Elasticsearch;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Polly;
 
 namespace listing.infrastructure
 {
@@ -8,30 +13,42 @@ namespace listing.infrastructure
 	{
 		public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
 		{
-			#region EFCore
-			//services.AddDbContext<EFListingDbContext>((serviceProvider, options) =>
-			//{
-			//	options.UseNpgsql(configuration.GetConnectionString("POSTGRES"), npgsqlOptions =>
-			//	{
-			//		npgsqlOptions.UseNetTopologySuite();
-			//	});
-			//	options.AddInterceptors(serviceProvider.GetRequiredService<PublishDomainEventsInterceptor>());
-			//});
-			//todo add automigrate => dbContext.Database.Migrate();
+			#region EF
+			services.AddDbContext<EFListingDbContext>();
 			#endregion
 
-			services.AddHttpClient<ProductCategoriesHttpClient>(configure=>
+			#region ES
+			services.AddSingleton(sp =>
 			{
-				configure.BaseAddress = new Uri(configuration["Trendyol:ProductCategories"]!);
+				return new ElasticsearchClient(new Uri(configuration.GetConnectionString("ELASTICSEARCH")!));
 			});
-			services.AddHttpClient<AttributesHttpClient>(configure =>
-			{
-				configure.BaseAddress = new Uri(configuration["Trendyol:Attributes"]!);
-			});
+			#endregion
+
 			#region Repositories
-
+			services.AddScoped<IESCategoryRepository, ESCategoryRepository>();
+			services.AddScoped<IESCategoryAttributeRepository, ESCategoryAttributeRepository>();
+			services.AddScoped<IESCategoryAttributeValueRepository, ESCategoryAttributeValueRepository>();
 			#endregion
 
+			#region HttpClients
+			services.AddTransient<CategoryAndAttributeHandler>();
+
+			services.AddHttpClient<ProductCategoriesHttpClient>()
+				.ConfigureHttpClient(httpClient =>
+				{
+					httpClient.BaseAddress = new Uri(configuration["Trendyol:Enpoints:ProductCategories:Path"]!);
+				})
+				.AddTransientHttpErrorPolicy(policy => policy.WaitAndRetryAsync(Convert.ToInt32(configuration["Trendyol:Enpoints:ProductCategories:Retry"]!), retryAttempt => TimeSpan.FromSeconds(Convert.ToInt32(configuration["Trendyol:Enpoints:ProductCategories:WaitSecond"]!))))
+				.AddDefaultLogger();
+
+			services.AddHttpClient<AttributesHttpClient>()
+				.ConfigureHttpClient(httpClient =>
+					{
+						httpClient.BaseAddress = new Uri(configuration["Trendyol:Enpoints:Attributes:Path"]!);
+					})
+				.AddTransientHttpErrorPolicy(policy => policy.WaitAndRetryAsync(Convert.ToInt32(configuration["Trendyol:Enpoints:Attributes:Retry"]!), retryAttempt => TimeSpan.FromSeconds(Math.Pow(Convert.ToInt32(configuration["Trendyol:Enpoints:Attributes:WaitSecond"]!), retryAttempt))))
+				.AddDefaultLogger();
+			#endregion
 			return services;
 		}
 	}

@@ -1,25 +1,23 @@
-﻿using Microsoft.Extensions.Logging;
-using listing.core.Extensions;
-using listing.core.ClientResponses.Trendyol;
+﻿using listing.core.Extensions;
 using listing.core.Domain.Elasticsearch;
 using listing.core.Abstractions;
+using System;
 
 namespace listing.infrastructure.Clients.Trendyol;
 
-public class CategoryAndAttributeProvider(IESCategoryRepository _eSCategoryRepository, IESCategoryAttributeRepository _eSCategoryAttributeRepository, IESCategoryAttributeValueRepository _eSCategoryAttributeValueRepository, ILogger<CategoryAndAttributeProvider> _logger, ProductCategoriesHttpClient _productCategoriesHttpClient, AttributesHttpClient _attributesHttpClient)
+public class CategoryAndAttributeHandler(IESCategoryRepository _eSCategoryRepository, IESCategoryAttributeRepository _eSCategoryAttributeRepository, IESCategoryAttributeValueRepository _eSCategoryAttributeValueRepository, ProductCategoriesHttpClient _productCategoriesHttpClient, AttributesHttpClient _attributesHttpClient)
 {
 	private const string _hierarchyName = "hierarchy-name";
 	private const string _hierarchyId = "hierarchy-id";
 
-	public async Task ProvideAsync(CancellationToken cancellationToken = default)
+	public async Task HandleAsync(CancellationToken cancellationToken = default)
 	{
-		IEnumerable<TrendyolCategory> productCategories= await _productCategoriesHttpClient.GetProductCategories(cancellationToken);
-		if (productCategories is null) throw new ArgumentNullException();
+		IEnumerable<TrendyolCategory> productCategories= (await _productCategoriesHttpClient.GetProductCategoriesAsync(cancellationToken)).categories;
 		IEnumerable<TrendyolCategory> flatProductCategories = productCategories.SelectRecursive(c => c.subCategories);
 		await HandleAndSaveAsync(productCategories, flatProductCategories);
 	}
 
-	public async Task HandleAndSaveAsync(IEnumerable<TrendyolCategory> productCategories, IEnumerable<TrendyolCategory> flatProductCategories)
+	private async Task HandleAndSaveAsync(IEnumerable<TrendyolCategory> productCategories, IEnumerable<TrendyolCategory> flatProductCategories)
 	{
 		foreach (var productCategory in productCategories)
 		{
@@ -28,8 +26,7 @@ public class CategoryAndAttributeProvider(IESCategoryRepository _eSCategoryRepos
 				await HandleAndSaveAsync(productCategory.subCategories, flatProductCategories);
 			else
 			{
-				TrendyolAttributeRootObject? attributes = await _attributesHttpClient.GetAttributes(productCategory.id);
-				if (attributes is null) throw new ArgumentNullException();
+				TrendyolAttributeRootObject attributes = await _attributesHttpClient.GetAttributesAsync(productCategory.id);
 				if (attributes.categoryAttributes.Any())
 				{
 					SaveAttributes(attributes.categoryAttributes);
@@ -38,23 +35,29 @@ public class CategoryAndAttributeProvider(IESCategoryRepository _eSCategoryRepos
 		}
 	}
 
-	public void SaveCategory(TrendyolCategory productCategory, IEnumerable<TrendyolCategory> flatProductCategories)
+	private void SaveCategory(TrendyolCategory productCategory, IEnumerable<TrendyolCategory> flatProductCategories)
 	{
 		var hieararchyPaths = GenerateHierarchy(productCategory, flatProductCategories);
 		var category = new Category(productCategory.id, productCategory.name, productCategory.parentId, hieararchyPaths.GetValueOrDefault(_hierarchyName, string.Empty), hieararchyPaths.GetValueOrDefault(_hierarchyId, string.Empty), !productCategory.subCategories.Any());
 		_eSCategoryRepository.Save(category);
 	}
 
-	public void SaveAttributes(IEnumerable<TrendyolAttribute> attributes)
+	private void SaveAttributes(IEnumerable<TrendyolAttribute> attributes)
 	{
+		IEnumerable<CategoryAttribute> categoryAttributes = attributes.Select(ta => new CategoryAttribute(ta.categoryId, ta.attribute.id, ta.attribute.name, ta.required, ta.varianter, ta.slicer, ta.allowCustom));
+		_eSCategoryAttributeRepository.Bulk(categoryAttributes);
+
 		foreach (var attribute in attributes)
 		{
-			var categoryAttributeValues= attribute.attributeValues?.Select(tav => new CategoryAttributeValue(attribute.categoryId, attribute.attribute.id, tav.id, tav.name));
-			_eSCategoryAttributeValueRepository.Bulk(categoryAttributeValues);
+			if (attribute.attributeValues.Any())
+				SaveAttributeValue(attribute.categoryId, attribute.attribute.id, attribute.attributeValues);
 		}
+	}
 
-		var categoryAttributes = attributes.Select(ta => new CategoryAttribute(ta.categoryId, ta.attribute.id, ta.attribute.name, ta.required, ta.varianter, ta.slicer, ta.allowCustom));
-		_eSCategoryAttributeRepository.Bulk(categoryAttributes);
+	private void SaveAttributeValue(int categoryId, int attributeId, IEnumerable<TrendyolAttributeValue> attributeValues)
+	{
+		IEnumerable<CategoryAttributeValue> categoryAttributeValues = attributeValues.Select(tav => new CategoryAttributeValue(categoryId, attributeId, tav.id, tav.name));
+		_eSCategoryAttributeValueRepository.Bulk(categoryAttributeValues);
 	}
 
 	private Dictionary<string, string> GenerateHierarchy(TrendyolCategory category, IEnumerable<TrendyolCategory> flatProductCategories)
