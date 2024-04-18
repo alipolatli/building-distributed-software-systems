@@ -1,4 +1,7 @@
-﻿namespace listing.api.Apis.Restful;
+﻿using listing.core.Abstractions;
+using Microsoft.AspNetCore.Mvc;
+
+namespace listing.api.Apis.Restful;
 
 public static class ListingApi
 {
@@ -7,12 +10,12 @@ public static class ListingApi
 		#region Legacy
 		app.MapGet("/category-and-attributes", ProvideCategoryAndAttributes);
 		#endregion
-		app.MapGet("/categories", GetCategories);
-		app.MapGet("/categories/{int:id}/parent", GetParentCategories);
-		app.MapGet("/categories/{int:id}/subs", GetSubsCategories);
 
-		app.MapGet("/categories/{int:id}/attributes", GetCategoryAttributes);
-		app.MapGet("/categories/{categoryId:id}/attributes/{int:id}/values", GetCategoryAttributeValues);
+		app.MapGet("/top-categories", TopCategories);
+		app.MapGet("/categories/{id:int}/parent", GetParentCategories);
+		app.MapGet("/categories/{id:int}/subs", GetSubsCategories);
+		app.MapGet("/categories/{id:int}/attributes", GetCategoryAttributes);
+		app.MapGet("/categories/{categoryId:int}/attributes/{id:int}/values", GetCategoryAttributeValues);
 
 		app.MapPost("/sale-items", AddSaleItem);
 		app.MapPut("/sale-items/{id:int}", UpdateSaleItem);
@@ -32,35 +35,20 @@ public static class ListingApi
 	}
 	#endregion
 
-	public static async Task<IResult> GetCategories([AsParameters] ListingServices listingServices, CancellationToken cancellationToken)
-	{
-		throw new NotImplementedException();
-		// Implementation
-	}
+	public static async Task<IResult> TopCategories([FromServices] IESCategoryRepository categoryRepository, CancellationToken cancellationToken)
+		=> Results.Ok(await categoryRepository.GetTopCategoriesAsync(cancellationToken));
 
-	public static async Task<IResult> GetParentCategories([AsParameters] ListingServices listingServices, CancellationToken cancellationToken)
-	{
-		throw new NotImplementedException();
-		// Implementation
-	}
+	public static async Task<IResult> GetParentCategories(int id, [FromServices] IESCategoryRepository categoryRepository, CancellationToken cancellationToken)
+		=> Results.Ok(await categoryRepository.GetParentCategoryAsync(id, cancellationToken));
 
-	public static async Task<IResult> GetSubsCategories([AsParameters] ListingServices listingServices, CancellationToken cancellationToken)
-	{
-		throw new NotImplementedException();
-		// Implementation
-	}
+	public static async Task<IResult> GetSubsCategories(int id, [FromServices] IESCategoryRepository categoryRepository, CancellationToken cancellationToken)
+		=> Results.Ok(await categoryRepository.GetSubCategoriesAsync(id, cancellationToken));
 
-	public static async Task<IResult> GetCategoryAttributes([AsParameters] ListingServices listingServices, CancellationToken cancellationToken)
-	{
-		throw new NotImplementedException();
-		// Implementation
-	}
+	public static async Task<IResult> GetCategoryAttributes(int id, [FromServices] IESCategoryAttributeRepository categoryAttributeRepository, CancellationToken cancellationToken, string? name = default)
+		=> Results.Ok(await categoryAttributeRepository.GetAttributesAsync(id, name, cancellationToken));
 
-	public static async Task<IResult> GetCategoryAttributeValues([AsParameters] ListingServices listingServices, CancellationToken cancellationToken)
-	{
-		throw new NotImplementedException();
-		// Implementation
-	}
+	public static async Task<IResult> GetCategoryAttributeValues(int categoryId, int id, [FromServices] IESCategoryAttributeValueRepository categoryAttributeValueRepository, CancellationToken cancellationToken, string? name = default)
+		=> Results.Ok(await categoryAttributeValueRepository.GetAttributeValuesAsync(categoryId, id, name, cancellationToken));
 
 	public static async Task<IResult> AddSaleItem([AsParameters] ListingServices listingServices, CancellationToken cancellationToken)
 	{
@@ -71,7 +59,6 @@ public static class ListingApi
 	public static async Task<IResult> UpdateSaleItem([AsParameters] ListingServices listingServices, CancellationToken cancellationToken)
 	{
 		throw new NotImplementedException();
-
 		// Implementation
 	}
 

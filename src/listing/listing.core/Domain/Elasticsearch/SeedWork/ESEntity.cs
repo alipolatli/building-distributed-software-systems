@@ -7,6 +7,7 @@ namespace listing.core.Domain.Elasticsearch.SeedWork
 	{
 		[Key]
 		[JsonPropertyName("_id")]
+		[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
 		public string Id { get; set; } = null!;
 	}
 }

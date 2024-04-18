@@ -23,6 +23,12 @@ public class EFListingDbContext : DbContext, IUnitOfWork
 	public DbSet<StockItemAttribute> StockItemAttributes { get; set; }
 
 
+	protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+	{
+		optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=bdss.listing.v1;Username=postgres;Password=example");
+		base.OnConfiguring(optionsBuilder);
+	}
+
 	protected override void OnModelCreating(ModelBuilder modelBuilder)
 	{
 		modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly())

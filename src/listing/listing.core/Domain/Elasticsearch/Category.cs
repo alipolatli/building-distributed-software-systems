@@ -21,6 +21,7 @@ public class Category :ESEntity
     public string Name { get; set; } = null!;
 
     [JsonPropertyName("parentId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? ParentId { get; set; }
 
     [JsonPropertyName("hierarchyName")]

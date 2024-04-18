@@ -27,6 +27,8 @@ public class StockItemConfiguration : IEntityTypeConfiguration<StockItem>
 		builder.Property(e => e.DiscountRate).IsRequired().HasPrecision(4, 2).HasColumnName("discount_rate");
 		builder.Property(e => e.VatRate).IsRequired().HasPrecision(4, 2).HasColumnName("vat_rate");
 
+		builder.Property(e => e.Quantity).IsRequired().HasColumnName("quantity");
+
 		builder.HasMany(e => e.Attributes).WithOne().HasForeignKey(e => e.StockItemId);
 		builder.HasMany(e => e.Medias).WithOne().HasForeignKey(e => e.StockItemId);
 	}

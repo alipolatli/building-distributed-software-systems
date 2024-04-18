@@ -14,8 +14,8 @@ public interface IEFGenericRepository<T> : IRepository<T> where T : EFEntity, IA
 	Task<PaginatedResult<T>> GetAllPaginatedAsync(int page, int size, Expression<Func<T, bool>>? filter = null, params Expression<Func<T, object>>[] includes);
 	Task<PaginatedResult<T>> GetAllPaginatedOrderingAsync(int page, int size, Expression<Func<T, bool>>? filter = null, Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null, params Expression<Func<T, object>>[] includes);
 	Task<T?> GetAsync(Expression<Func<T, bool>>? filter = null, params Expression<Func<T, object>>[] includes);
-	Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
-	Task<bool> AnyAsync(Guid id, CancellationToken cancellationToken = default);
+	Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+	Task<bool> AnyAsync(int id, CancellationToken cancellationToken = default);
 	Task<bool> AnyAsync(Expression<Func<T, bool>>? filter = null, CancellationToken cancellationToken = default);
 	Task<long> TotalCountAsync(Expression<Func<T, bool>>? filter = null, CancellationToken cancellationToken = default);
 	Task AddAsync(T entity, CancellationToken cancellationToken = default);

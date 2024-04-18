@@ -18,7 +18,7 @@ namespace listing.core
 
 			if (tenantIdFromHeader != null)
 				return tenantIdFromHeader.Value;
-			return GetTenantIdInJwt() ?? throw new UnauthorizedAccessException("Tenant ID is missing.");
+			return GetTenantIdInJwt() ?? Guid.NewGuid();
 		}
 
 		private Guid? GetTenantIdInHeader()

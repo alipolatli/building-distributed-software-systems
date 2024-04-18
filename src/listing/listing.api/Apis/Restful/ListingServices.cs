@@ -1,8 +1,11 @@
-﻿using listing.infrastructure.Clients.Trendyol;
+﻿using listing.core.Abstractions;
+using listing.infrastructure.Clients.Trendyol;
+using MediatR;
 
 namespace listing.api.Apis.Restful;
 
-public class ListingServices(CategoryAndAttributeHandler categoryAndAttributeProvider)
+public class ListingServices(CategoryAndAttributeHandler categoryAndAttributeProvider, ISender sender)
 {
-    public CategoryAndAttributeHandler CategoryAndAttributeProvider { get; } = categoryAndAttributeProvider;
+	public ISender Sender { get; } = sender;
+	public CategoryAndAttributeHandler CategoryAndAttributeProvider { get; } = categoryAndAttributeProvider;
 }

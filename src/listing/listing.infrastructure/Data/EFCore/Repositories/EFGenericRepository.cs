@@ -21,7 +21,7 @@ public class EFGenericRepository<T> : IEFGenericRepository<T> where T : EFEntity
 	public async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken cancellationToken = default)
 		 => await _dbContext.Set<T>().AddRangeAsync(entities, cancellationToken);
 
-	public async Task<bool> AnyAsync(Guid id, CancellationToken cancellationToken = default)
+	public async Task<bool> AnyAsync(int id, CancellationToken cancellationToken = default)
 		=> await _dbContext.Set<T>().AnyAsync(e => e.Id == id, cancellationToken);
 
 	public async Task<bool> AnyAsync(Expression<Func<T, bool>>? filter = null, CancellationToken cancellationToken = default)
@@ -106,7 +106,7 @@ public class EFGenericRepository<T> : IEFGenericRepository<T> where T : EFEntity
 		return await query.SingleOrDefaultAsync();
 	}
 
-	public async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+	public async Task<T?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
 		=> await _dbContext.Set<T>().FindAsync(id, cancellationToken);
 
 	public void Remove(T entity)

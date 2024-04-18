@@ -5,8 +5,8 @@ namespace listing.core.Domain.EFCore.SeedWork;
 public abstract class EFEntity
 {
 	int? _requestedHashCode;
-	Guid _Id;
-	public virtual Guid Id
+	int _Id;
+	public virtual int Id
 	{
 		get
 		{
